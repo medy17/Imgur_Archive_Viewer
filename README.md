@@ -1,3 +1,5 @@
+# README
+
 ## Overview
 
 The **Imgur Archive Viewer** is a Python-based desktop application designed to assist users in retrieving and viewing archived images from Imgur. The application leverages the Wayback Machine (Internet Archive) to locate and download images, making it especially useful for retrieving images that may no longer be available on Imgur directly.
