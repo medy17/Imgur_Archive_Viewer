@@ -1,0 +1,6 @@
+requests
+opencv-python
+pillow
+tkinter
+shutil
+queue
