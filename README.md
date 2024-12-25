@@ -1,10 +1,21 @@
-# README
-
 ## Overview
 
-The **Imgur Archive Viewer** is a Python-based desktop for retrieving and viewing archived images from Imgur. The application uses the Wayback Machine (Internet Archive) to locate and download images, making it especially useful for retrieving images that may no longer be available on Imgur directly.
+The **Imgur Archive Viewer** is a Python-based desktop application designed to assist users in retrieving and viewing archived images from Imgur. The application leverages the Wayback Machine (Internet Archive) to locate and download images, making it especially useful for retrieving images that may no longer be available on Imgur directly.
 
-This application supports a wide range of image and video file formats and is built with tkinter.
+This application supports a wide range of image and video file formats, offering a clean graphical user interface (GUI) built with Tkinter.
+
+---
+### New in v2:
+
+- **Batch Processing**: Process multiple Imgur URLs at once from a `.txt` file.
+- **Enhanced Folder Management**: Automatically organizes downloads, even during batch processing.
+
+---
+### How to Batch Process
+- Paste links in a `.txt` file separated by a line break.
+- Save as the file as a `.txt`. No other extension will work (eg `.rtf`, `.docx`, `.pdf` etc)
+- Load up Imgur_Archive_ViewerV2.py then select `Batch Process from File`.
+- The app will automatically create folders for every image and will update you on the progress within the GUI.
 
 ---
 
@@ -41,7 +52,7 @@ pip install -r requirements.txt
 
 1. **Launch the Application**: Run the script in your terminal:
     ```bash
-    python imgur_archive_viewer_v1.0.py
+    python imgur_archive_viewerV2.py
     ```
 2. **Enter the Imgur URL**:
     - Copy and paste the desired Imgur URL into the text input field labeled **"Imgur URL"**.
