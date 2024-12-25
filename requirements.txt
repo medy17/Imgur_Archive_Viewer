@@ -1,6 +1,6 @@
 requests
 opencv-python
 pillow
-tkinter
+tk
 shutil
 queue
