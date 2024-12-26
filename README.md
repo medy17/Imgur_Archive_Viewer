@@ -14,7 +14,7 @@ This application supports a wide range of image and video file formats, offering
 ### How to Batch Process
 - Paste links in a `.txt` file separated by a line break.
 - Save as the file as a `.txt`. No other extension will work (eg `.rtf`, `.docx`, `.pdf` etc)
-- Load up Imgur_Archive_ViewerV2.py then select `Batch Process from File`.
+- Load up `Imgur_Archive_ViewerV2.py` then select `Batch Process from File`.
 - The app will automatically create folders for every image and will update you on the progress within the GUI.
 
 ---
