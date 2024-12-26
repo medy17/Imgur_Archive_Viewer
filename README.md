@@ -115,10 +115,7 @@ You can modify the following variables in the script:
 
 ## Future Enhancements
 
-- Add support for batch processing of multiple URLs.
-- Include advanced filtering options for specific date ranges in the Wayback Machine.
-- Extend support for non-image file types (e.g., `.zip`).
-- Extend support for `.gif` and `.gifv` media.
+- Extend support for `.gif`, `.gifv`, `.mp4` previews in the app window.
 
 ---
 
