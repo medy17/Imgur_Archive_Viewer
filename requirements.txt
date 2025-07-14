@@ -1,6 +1,5 @@
 requests
-opencv-python
 pillow
-tk
-shutil
-queue
+sv-ttk
+darkdetect
+pywinstyles
