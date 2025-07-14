@@ -1,7 +1,7 @@
 # Imgur Archive Hunter
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+![License](https://img.shields.io/badge/license-CC--BY--NC%204.0-green.svg)
 ![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
 
 A modern, feature-rich desktop application for finding and downloading lost or deleted media from Imgur's history on the Internet Archive's Wayback Machine.
