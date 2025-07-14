@@ -1,6 +1,6 @@
 import os
 import re
-import sys  # Added for sys.getwindowsversion
+import sys
 import shutil
 import queue
 import threading
@@ -19,7 +19,7 @@ try:
 except ImportError:
     darkdetect = None
 
-if os.name == 'nt':  # pywinstyles is Windows-only
+if os.name == 'nt':
     try:
         import pywinstyles
     except ImportError:
@@ -28,11 +28,8 @@ else:
     pywinstyles = None
 
 # --- Constants ---
-# (Constants remain the same as v4.0)
 EXTENSIONS = [".jpg", ".png", ".gif", ".gifv", ".mp4", ".webm", ".mpeg"]
-PRIORITY_EXTENSIONS = [
-    ".mp4", ".webm", ".gif", ".png", ".jpg", ".mpeg", ".gifv"
-]
+PRIORITY_EXTENSIONS = [".mp4", ".webm", ".gif", ".png", ".jpg", ".mpeg", ".gifv"]
 MIME_TYPE_MAP = {
     "image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif",
     "video/mp4": ".mp4", "video/webm": ".webm", "video/mpeg": ".mpeg"
@@ -40,10 +37,10 @@ MIME_TYPE_MAP = {
 
 
 # --- Application Class ---
-class ImgurArchiveAppV4_1:
+class ImgurArchiveAppV4_2:
     def __init__(self, root):
         self.root = root
-        self.root.title("Imgur Archive Hunter v4.1")
+        self.root.title("Imgur Archive Hunter v4.2")
         self.root.geometry("850x800")
         self.root.minsize(700, 600)
 
@@ -54,9 +51,9 @@ class ImgurArchiveAppV4_1:
         self.cancel_event = threading.Event()
         self.progress_queue = queue.Queue()
         self.batch_items = {}
+        self.first_success_previewed = False  # ** NEW: Flag for better UX **
 
         # --- Theming ---
-        # ** NEW: System theme detection **
         if darkdetect and darkdetect.theme():
             initial_theme = darkdetect.theme().lower()
             sv_ttk.set_theme(initial_theme)
@@ -65,7 +62,6 @@ class ImgurArchiveAppV4_1:
             sv_ttk.set_theme("light")
             self.is_dark_mode = False
 
-        # ** NEW: Apply dark title bar on Windows **
         self._apply_theme_to_titlebar()
 
         # --- Core Components ---
@@ -83,17 +79,14 @@ class ImgurArchiveAppV4_1:
         self.root.after(100, self._process_progress_queue)
         self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
 
-    # --- UI Creation Methods ---
-
+    # ... (Most UI creation methods are unchanged) ...
     def _create_styles(self):
-        # ... (This method is unchanged from v4.0)
         style = ttk.Style()
         style.configure("Title.TLabel", font=("Segoe UI", 12, "bold"))
         style.configure("Header.TLabel", font=("Segoe UI", 10, "bold"))
         style.configure("Success.TLabel", foreground="green")
         style.configure("Error.TLabel", foreground="red")
         style.configure("Action.TButton", font=("Segoe UI", 10, "bold"))
-
         style.map('Treeview', background=[('selected', '#0078d4')])
         style.configure("Treeview.Heading", font=('Segoe UI', 10, 'bold'))
         style.configure("Success.Treeview", foreground="#008000")
@@ -101,46 +94,35 @@ class ImgurArchiveAppV4_1:
         style.configure("Searching.Treeview", foreground="#0078d4")
 
     def _create_main_layout(self):
-        # ... (This method is mostly unchanged, but initializes the theme button correctly)
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(1, weight=3)
         self.root.rowconfigure(2, weight=2)
-
         header_frame = ttk.Frame(self.root, padding=(10, 10))
         header_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
-
         ttk.Label(header_frame, text="Imgur Archive Hunter", style="Title.TLabel").pack(side="left")
-
-        # ** UPDATED: Set initial icon based on detected theme **
         theme_icon = "☀️" if self.is_dark_mode else "🌙"
         self.theme_button = ttk.Button(header_frame, text=theme_icon, command=self.toggle_theme, width=3)
         self.theme_button.pack(side="right", padx=5)
         ttk.Button(header_frame, text="About", command=self._show_about).pack(side="right")
 
-    # ... (All other _create methods are unchanged from v4.0)
     def _create_input_frame(self):
-        # This method is unchanged
         input_container = ttk.LabelFrame(self.root, text="Configuration & Input", padding=10)
         input_container.grid(row=0, column=0, padx=10, pady=(50, 5), sticky="new")
         input_container.columnconfigure(1, weight=1)
-
         ttk.Label(input_container, text="Save Location:").grid(row=0, column=0, sticky="w", pady=2)
         self.save_location_var = tk.StringVar(value=os.getcwd())
         save_entry = ttk.Entry(input_container, textvariable=self.save_location_var)
         save_entry.grid(row=0, column=1, sticky="ew", padx=5)
         self.browse_save_btn = ttk.Button(input_container, text="...", command=self._browse_save_location, width=3)
         self.browse_save_btn.grid(row=0, column=2, sticky="e")
-
         self.best_quality_var = tk.BooleanVar(value=True)
         best_quality_check = ttk.Checkbutton(input_container, text="Search for best quality (slower)",
                                              variable=self.best_quality_var)
         best_quality_check.grid(row=1, column=0, columnspan=3, sticky="w", pady=(5, 10))
-
         ttk.Label(input_container, text="Timeout (s):").grid(row=2, column=0, sticky="w", pady=2)
         self.timeout_var = tk.IntVar(value=20)
         timeout_spinbox = ttk.Spinbox(input_container, from_=5, to_=120, textvariable=self.timeout_var, width=5)
         timeout_spinbox.grid(row=2, column=1, sticky="w", padx=5)
-
         self.input_mode_var = tk.StringVar(value="single")
         single_radio = ttk.Radiobutton(input_container, text="Single URL", variable=self.input_mode_var, value="single",
                                        command=self._toggle_input_mode)
@@ -148,19 +130,16 @@ class ImgurArchiveAppV4_1:
         batch_radio = ttk.Radiobutton(input_container, text="Batch from .txt File", variable=self.input_mode_var,
                                       value="batch", command=self._toggle_input_mode)
         batch_radio.grid(row=5, column=0, columnspan=3, sticky="w", pady=(5, 2))
-
         self.single_url_frame = ttk.Frame(input_container)
         self.single_url_frame.grid(row=4, column=0, columnspan=3, sticky="ew", padx=20)
         self.url_entry = ttk.Entry(self.single_url_frame)
         self.url_entry.pack(side="left", expand=True, fill="x")
-
         self.batch_file_frame = ttk.Frame(input_container)
         self.batch_file_var = tk.StringVar()
         batch_entry = ttk.Entry(self.batch_file_frame, textvariable=self.batch_file_var, state="readonly")
         batch_entry.pack(side="left", expand=True, fill="x", padx=(0, 5))
         self.browse_batch_btn = ttk.Button(self.batch_file_frame, text="Browse...", command=self._browse_batch_file)
         self.browse_batch_btn.pack(side="left")
-
         action_frame = ttk.Frame(input_container)
         action_frame.grid(row=7, column=0, columnspan=3, pady=(15, 5))
         self.start_button = ttk.Button(action_frame, text="Start Download", command=self.start_process,
@@ -170,12 +149,10 @@ class ImgurArchiveAppV4_1:
         self.cancel_button.pack(side="left", padx=5)
 
     def _create_batch_view(self):
-        # This method is unchanged
         self.batch_frame = ttk.LabelFrame(self.root, text="Batch Process", padding=10)
         self.batch_frame.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
         self.batch_frame.columnconfigure(0, weight=1)
         self.batch_frame.rowconfigure(1, weight=1)
-
         progress_info_frame = ttk.Frame(self.batch_frame)
         progress_info_frame.grid(row=0, column=0, sticky="ew", pady=(0, 5))
         progress_info_frame.columnconfigure(0, weight=1)
@@ -183,14 +160,12 @@ class ImgurArchiveAppV4_1:
         self.progress_bar.grid(row=0, column=0, sticky="ew")
         self.progress_label = ttk.Label(progress_info_frame, text="Waiting to start...")
         self.progress_label.grid(row=0, column=1, sticky="w", padx=10)
-
         batch_actions_frame = ttk.Frame(progress_info_frame)
         batch_actions_frame.grid(row=0, column=2, sticky='e')
         self.retry_button = ttk.Button(batch_actions_frame, text="Retry Failed", command=self._retry_failed)
         self.retry_button.pack(side='left', padx=5)
         self.clear_button = ttk.Button(batch_actions_frame, text="Clear List", command=self._clear_batch_list)
         self.clear_button.pack(side='left')
-
         cols = ("#0", "URL", "Status", "File Path")
         self.tree = ttk.Treeview(self.batch_frame, columns=cols[1:], show="headings", height=10)
         self.tree.grid(row=1, column=0, sticky="nsew")
@@ -203,37 +178,33 @@ class ImgurArchiveAppV4_1:
         tree_scrollbar = ttk.Scrollbar(self.batch_frame, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=tree_scrollbar.set)
         tree_scrollbar.grid(row=1, column=1, sticky="ns")
-
         self.tree.tag_configure("Success", foreground="#008800" if self.is_dark_mode else "#007700")
         self.tree.tag_configure("Failed", foreground="#FFAAAA" if self.is_dark_mode else "#CC0000")
         self.tree.tag_configure("Searching", foreground="#87CEEB" if self.is_dark_mode else "#0078D4")
         self.tree.bind("<<TreeviewSelect>>", self._on_tree_select)
 
     def _create_preview_and_log(self):
-        # This method is unchanged
         paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
         paned_window.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
 
         preview_frame = ttk.LabelFrame(paned_window, text="Preview")
-        self.image_label = ttk.Label(preview_frame, anchor="center", text="Preview Area")
+        # ** UPDATED: Set a more helpful initial text **
+        self.image_label = ttk.Label(preview_frame, anchor="center", text="Select a successful download to preview")
         self.image_label.pack(expand=True, fill="both", padx=5, pady=5)
         paned_window.add(preview_frame, weight=1)
 
         log_frame = ttk.LabelFrame(paned_window, text="Log")
-        log_frame.columnconfigure(0, weight=1)
+        log_frame.columnconfigure(0, weight=1);
         log_frame.rowconfigure(0, weight=1)
-
         log_actions_frame = ttk.Frame(log_frame)
         log_actions_frame.grid(row=1, column=0, sticky='ew')
         ttk.Button(log_actions_frame, text="Export Log...", command=self._export_log).pack(side='right', pady=2)
-
         self.log_text = tk.Text(log_frame, wrap="word", state="disabled", height=10)
         log_scrollbar = ttk.Scrollbar(log_frame, orient="vertical", command=self.log_text.yview)
         self.log_text.config(yscrollcommand=log_scrollbar.set)
-        self.log_text.grid(row=0, column=0, sticky="nsew")
+        self.log_text.grid(row=0, column=0, sticky="nsew");
         log_scrollbar.grid(row=0, column=1, sticky="ns")
         paned_window.add(log_frame, weight=2)
-
         self.log_text.tag_config("green", foreground="#4CAF50");
         self.log_text.tag_config("red", foreground="#F44336");
         self.log_text.tag_config("orange", foreground="#FF9800");
@@ -242,21 +213,19 @@ class ImgurArchiveAppV4_1:
         self.log_text.tag_config("bold", font=("Segoe UI", 9, "bold"))
 
     def _create_status_bar(self):
-        # This method is unchanged
         status_bar = ttk.Frame(self.root, padding=(5, 2))
         status_bar.grid(row=3, column=0, sticky="ew")
-
         self.status_label = ttk.Label(status_bar, text="Ready", anchor="w")
         self.status_label.pack(side="left")
-
         self.open_file_button = ttk.Button(status_bar, text="Open Last File", command=self.open_recent_file)
         self.open_file_button.pack(side="right", padx=5)
         self.open_folder_button = ttk.Button(status_bar, text="Open Last Folder", command=self.open_recent_folder)
         self.open_folder_button.pack(side="right")
 
     # --- Core Logic & Processing ---
-    # ... (This entire section is unchanged from v4.0)
+
     def start_process(self):
+        # ... (This function is unchanged)
         save_folder = self.save_location_var.get()
         if not os.path.isdir(save_folder):
             messagebox.showerror("Error", "The specified save location is not a valid directory.")
@@ -289,13 +258,17 @@ class ImgurArchiveAppV4_1:
                 return
 
     def _start_process_thread(self, target_func, *args):
+        # ** UPDATED: Reset preview state on new run **
         self._set_ui_state('RUNNING')
         self._clear_log()
+        self._clear_preview()
+        self.first_success_previewed = False
         self.log_message("Starting process...", "blue", bold=True)
         self.active_thread = threading.Thread(target=self._process_wrapper, args=(target_func, *args))
         self.active_thread.start()
 
     def _process_wrapper(self, target_func, *args):
+        # ... (This function is unchanged)
         try:
             target_func(*args)
             if not self.cancel_event.is_set():
@@ -309,20 +282,24 @@ class ImgurArchiveAppV4_1:
             self.progress_queue.put({'type': 'status', 'text': 'Process finished.'})
 
     def _process_batch(self):
+        # ** UPDATED: Logic to auto-preview the first success **
         items_to_process = list(self.batch_items.keys())
         total = len(items_to_process)
         save_folder = self.save_location_var.get()
         extensions_to_try = PRIORITY_EXTENSIONS if self.best_quality_var.get() else EXTENSIONS
         mode_msg = "Best Quality" if self.best_quality_var.get() else "Quick Scan"
         self.log_message(f"Starting batch of {total} items with '{mode_msg}' mode.", "purple")
+
         for i, item_id in enumerate(items_to_process):
             if self.cancel_event.is_set():
                 self.log_message("Batch process cancelled by user.", "orange", bold=True)
                 break
+
             url = self.batch_items[item_id]['url']
             self.log_message(f"--- Processing {i + 1}/{total}: {url} ---")
             self.progress_queue.put(
                 {'type': 'tree_update', 'id': item_id, 'status': 'Searching', 'tags': ('Searching',)})
+
             imgur_id = self.extract_imgur_id(url)
             if not imgur_id:
                 self.log_message(f"Skipping invalid URL: {url}", "orange")
@@ -336,15 +313,21 @@ class ImgurArchiveAppV4_1:
                     self.progress_queue.put(
                         {'type': 'tree_update', 'id': item_id, 'status': 'Success', 'path': file_path,
                          'tags': ('Success',)})
-                    self.progress_queue.put({'type': 'preview', 'path': file_path})
+
+                    # --- AUTO-PREVIEW LOGIC ---
+                    if not self.first_success_previewed:
+                        self.progress_queue.put({'type': 'preview', 'path': file_path})
+                        self.first_success_previewed = True
                 except Exception as e:
                     self.log_message(f"Failed for ID {imgur_id}: {e}", "red")
                     self.progress_queue.put(
                         {'type': 'tree_update', 'id': item_id, 'status': str(e), 'tags': ('Failed',)})
+
             self.progress_queue.put({'type': 'progress', 'value': i + 1, 'total': total})
         else:
             self.log_message("Batch process completed.", "green", bold=True)
 
+    # ... (download_image, find_archived_url, save_file are unchanged) ...
     def download_image(self, imgur_id, save_folder, extensions_to_try):
         archive_url, found_ext = self.find_archived_url(imgur_id, extensions_to_try)
         try:
@@ -395,8 +378,7 @@ class ImgurArchiveAppV4_1:
             return output_path
 
     # --- UI State & Event Handlers ---
-
-    # ... (_set_ui_state, _process_progress_queue, cancel_process, _on_closing are unchanged)
+    # ... (Most of this section is unchanged) ...
     def _set_ui_state(self, new_state):
         self.app_state = new_state
         is_idle = (new_state == 'IDLE' or new_state == 'DONE')
@@ -462,7 +444,7 @@ class ImgurArchiveAppV4_1:
             self.root.destroy()
 
     # --- Helper & Utility Methods ---
-    # ... (Most helpers are unchanged)
+    # ... (most helpers unchanged) ...
     def log_message(self, message, color_tag=None, bold=False):
         tags = []
         if color_tag: tags.append(color_tag)
@@ -491,33 +473,38 @@ class ImgurArchiveAppV4_1:
         match = re.search(r"(?:i\.)?imgur\.(?:com|io)/(?:a/|gallery/|t/[^/]+/)?([a-zA-Z0-9]{5,7})", url)
         return match.group(1) if match else None
 
+    # ** COMPLETELY REWRITTEN AND FIXED **
     def _update_preview(self, file_path):
+        """Generates and displays a thumbnail for the given image file path."""
         try:
             ext = os.path.splitext(file_path)[-1].lower()
             if ext in [".jpg", ".png", ".gif"]:
                 image = Image.open(file_path)
-                w, h = image.size
-                max_dim = self.image_label.winfo_width() - 10
-                if w > h:
-                    new_w, new_h = max_dim, int(h * (max_dim / w))
-                else:
-                    new_h, new_w = max_dim, int(w * (max_dim / h))
-                if new_w > 0 and new_h > 0:
-                    image.thumbnail((new_w, new_h), Image.Resampling.LANCZOS)
-                    tk_image = ImageTk.PhotoImage(image)
-                    self.image_label.config(image=tk_image, text="")
-                    self.image_label.image = tk_image
-                else:
-                    self.image_label.config(image="", text=f"Preview not available\n(Image too small or window hidden)")
+
+                # Use a fixed max size for robust thumbnailing
+                max_size = (350, 350)
+                image.thumbnail(max_size, Image.Resampling.LANCZOS)
+
+                tk_image = ImageTk.PhotoImage(image)
+                self.image_label.config(image=tk_image, text="")
+                # CRITICAL: Keep a reference to the image to prevent garbage collection
+                self.image_label.image = tk_image
             else:
                 self.image_label.config(image="", text=f"Preview not available\nfor {ext} files.")
-            self.image_label.image = None
+                # Clear the reference if it's not an image
+                self.image_label.image = None
         except Exception as e:
             self.log_message(f"Error updating preview: {e}", "red")
             self.image_label.config(image="", text="Error loading preview.")
             self.image_label.image = None
 
+    def _clear_preview(self):
+        """Resets the preview area to its default state."""
+        self.image_label.config(image="", text="Select a successful download to preview")
+        self.image_label.image = None
+
     def _retry_failed(self):
+        # ... (This function is unchanged) ...
         failed_items = [iid for iid, data in self.batch_items.items() if
                         data['status'] not in ('Success', 'Invalid URL')]
         if not failed_items:
@@ -527,9 +514,11 @@ class ImgurArchiveAppV4_1:
             self.tree.item(iid, values=(self.batch_items[iid]['url'], "Queued", ""));
             self.tree.item(iid, tags=())
         self.batch_items = {iid: self.batch_items[iid] for iid in failed_items}
+        self.first_success_previewed = False  # Reset for the new run
         self._start_process_thread(self._process_batch)
 
     def _clear_batch_list(self):
+        # ... (This function is unchanged) ...
         for item in self.tree.get_children(): self.tree.delete(item)
         self.batch_items.clear();
         self.progress_bar['value'] = 0
@@ -537,11 +526,13 @@ class ImgurArchiveAppV4_1:
         self.retry_button.config(state='disabled')
 
     def _add_to_batch_list(self, urls):
+        # ... (This function is unchanged) ...
         for url in urls:
             item_id = self.tree.insert("", "end", values=(url, "Queued", ""))
             self.batch_items[item_id] = {'url': url, 'status': 'Queued', 'path': None}
 
     def _on_tree_select(self, event):
+        # ... (This function is unchanged) ...
         selected_items = self.tree.selection()
         if not selected_items: return
         item_id = selected_items[0]
@@ -549,40 +540,28 @@ class ImgurArchiveAppV4_1:
         if item_data and item_data.get('path'): self._update_preview(item_data['path'])
 
     # --- Button & Menu Callbacks ---
-
-    # ** NEW: Helper function for Windows title bar styling **
+    # ... (This section is mostly unchanged) ...
     def _apply_theme_to_titlebar(self):
-        """Applies the current theme to the window title bar on Windows."""
-        if pywinstyles is None:
-            return  # Do nothing if library is not installed or not on Windows
-
+        if pywinstyles is None: return
         try:
             hwnd = pywinstyles.get_hwnd(self.root)
             version = sys.getwindowsversion()
             is_dark = sv_ttk.get_theme() == "dark"
-
-            if version.major == 10 and version.build >= 22000:  # Windows 11
-                # Use theme-appropriate colors
+            if version.major == 10 and version.build >= 22000:
                 header_color = "#1c1c1c" if is_dark else "#fafafa"
                 pywinstyles.change_header_color(hwnd, header_color)
-            elif version.major == 10:  # Windows 10
+            elif version.major == 10:
                 pywinstyles.apply_style(self.root, "dark" if is_dark else "normal")
-                # Hack to force title bar refresh
-                self.root.wm_attributes("-alpha", 0.99)
+                self.root.wm_attributes("-alpha", 0.99);
                 self.root.wm_attributes("-alpha", 1.0)
         except Exception as e:
-            # Silently fail if something goes wrong with styling
             print(f"Could not apply style to title bar: {e}")
 
-    # ** UPDATED: toggle_theme now updates the title bar **
     def toggle_theme(self):
         self.is_dark_mode = not self.is_dark_mode
         theme_to_set = "dark" if self.is_dark_mode else "light"
         sv_ttk.set_theme(theme_to_set)
-
-        # ** NEW: Apply title bar style on toggle **
         self._apply_theme_to_titlebar()
-
         self.theme_button.config(text="☀️" if self.is_dark_mode else "🌙")
         self.tree.tag_configure("Success", foreground="#66BB6A" if self.is_dark_mode else "#007700")
         self.tree.tag_configure("Failed", foreground="#EF5350" if self.is_dark_mode else "#CC0000")
@@ -620,15 +599,11 @@ class ImgurArchiveAppV4_1:
 
     def _export_log(self):
         log_content = self.log_text.get("1.0", tk.END)
-        if not log_content.strip():
-            messagebox.showinfo("Info", "Log is empty, nothing to export.")
-            return
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".txt",
-            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
-            title="Save Log As",
-            initialfile=f"imgur_hunter_log_{datetime.now():%Y-%m-%d_%H-%M-%S}.txt"
-        )
+        if not log_content.strip(): messagebox.showinfo("Info", "Log is empty, nothing to export."); return
+        filename = filedialog.asksaveasfilename(defaultextension=".txt",
+                                                filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
+                                                title="Save Log As",
+                                                initialfile=f"imgur_hunter_log_{datetime.now():%Y-%m-%d_%H-%M-%S}.txt")
         if filename:
             try:
                 with open(filename, 'w', encoding='utf-8') as f:
@@ -638,21 +613,20 @@ class ImgurArchiveAppV4_1:
                 messagebox.showerror("Error", f"Failed to export log: {e}")
 
     def _show_about(self):
-        about_text = (
-            "Imgur Archive Hunter v4.1\n\n"
-            "This application searches the Wayback Machine's CDX index to find and download archived Imgur media.\n\n"
-            "Features:\n"
-            "- Single URL or Batch .txt file processing\n"
-            "- 'Best Quality' mode prioritizes video/GIF\n"
-            "- Real-time progress tracking & retry failed\n"
-            "- Auto-detects system theme on startup\n"
-            "- Dark mode title bar on Windows 10/11\n\n"
-            "UI theme powered by sv-ttk."
-        )
+        about_text = ("Imgur Archive Hunter v4.2\n\n"
+                      "This application searches the Wayback Machine's CDX index to find and download archived Imgur media.\n\n"
+                      "Features:\n"
+                      "- Single URL or Batch .txt file processing\n"
+                      "- 'Best Quality' mode prioritizes video/GIF\n"
+                      "- Real-time progress tracking & retry failed\n"
+                      "- Auto-detects system theme on startup\n"
+                      "- Dark mode title bar on Windows 10/11\n"
+                      "- Fixed and improved image preview system\n\n"
+                      "UI theme powered by sv-ttk.")
         messagebox.showinfo("About Imgur Archive Hunter", about_text)
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = ImgurArchiveAppV4_1(root)
+    app = ImgurArchiveAppV4_2(root)
     root.mainloop()

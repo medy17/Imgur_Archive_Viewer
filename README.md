@@ -1,122 +1,134 @@
-# README
+# Imgur Archive Hunter
+
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Status](https://img.shields.io/badge/status-active-brightgreen.svg)
+
+A modern, feature-rich desktop application for finding and downloading lost or deleted media from Imgur's history on the Internet Archive's Wayback Machine.
+
+---
+
+<p align="center">
+  <!-- IMPORTANT: Replace this with a screenshot or GIF of your v4.1 application! -->
+  <img src="https://i.imgur.com/qMUujbP.png" alt="Imgur Archive Hunter Screenshot" width="700"/>
+</p>
+
+---
 
 ## Overview
 
-The **Imgur Archive Viewer** is a Python-based desktop for retrieving and viewing archived images from Imgur. The application uses the Wayback Machine (Internet Archive) to locate and download images, making it especially useful for retrieving images that may no longer be available on Imgur directly.
+**Imgur Archive Hunter** is a powerful tool built with Python and Tkinter that queries the Wayback Machine's CDX API to find and recover archived Imgur media. With a sleek, modern UI powered by `sv-ttk`, it provides a seamless user experience, including automatic dark/light mode detection and robust batch processing capabilities.
 
-This application supports a wide range of image and video file formats and is built with tkinter.
+If an Imgur link is dead but you suspect it was once archived, this is the tool to find it.
 
----
+## Key Features
 
-## Features
-
-- **URL-Based Retrieval**: Input an Imgur URL, and the application will search for archived versions.
-- **Multiple File Formats**: Supports common extensions like `.jpg`, `.png`, `.gif`, `.mp4`, `.webm`, and more.
-- **Extension Selection**: Users can select which file types they want to retrieve.
-- **Archived File Retrieval**: Integrates with the Wayback Machine to search for and download archived images.
-- **Image Preview**: View the most recently downloaded image directly in the app.
-- **Folder Management**: Automatically organizes downloaded files into folders to prevent clutter.
-- **Error Handling**: Displays clear error messages if issues arise during URL processing or image retrieval.
-
----
+- **Modern User Interface**: A clean, professional-looking UI with automatic light/dark theme detection that matches your OS settings.
+- **Robust Batch Processing**:
+    - Process hundreds of URLs from a `.txt` file.
+    - View real-time status for each URL (Queued, Searching, Success, Failed) in an interactive list.
+- **Retry Failed Downloads**: A "Retry Failed" button conveniently re-queues only the items that failed in the last batch.
+- **Intelligent Search Modes**:
+    - **Best Quality (Default)**: Slower, prioritized search that finds videos (`.mp4`, `.webm`) over static thumbnails (`.jpg`).
+    - **Quick Scan**: Faster search that finds any available version, prioritizing speed.
+- **Interactive Preview**: Click on a successfully downloaded item in the batch list to see an image preview directly within the app.
+- **Configurable Settings**: Easily adjust the save location and network request timeout directly from the UI.
+- **Comprehensive Logging**:
+    - See a detailed, color-coded log of the entire process.
+    - Export the session log to a `.txt` file for record-keeping.
+- **Standalone Executable**: Comes with instructions to build a single `.exe` file for easy distribution on Windows.
 
 ## Requirements
 
 - **Python**: Version 3.8 or higher.
-- **Dependencies**:
-    - `requests`
-    - `opencv-python`
-    - `pillow`
-    - `tkinter` (pre-installed with Python on most systems)
+- **Dependencies**: The application relies on several external libraries.
 
-To install missing dependencies, run:
+### Installation
 
-```bash
-pip install -r requirements.txt
-```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/Imgur_Archive_Viewer_Repo.git
+    cd Imgur_Archive_Viewer_Repo
+    ```
 
----
+2.  **Create and activate a virtual environment (recommended):**
+    ```bash
+    # On Windows
+    python -m venv .venv
+    .\.venv\Scripts\activate
+
+    # On macOS/Linux
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
+
+3.  **Install the required dependencies from `requirements.txt`:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 ## How to Use
 
-1. **Launch the Application**: Run the script in your terminal:
+1.  **Launch the Application**:
     ```bash
-    python imgur_archive_viewer_v1.0.py
+    python imgur_archive_viewer_v4.1.py
     ```
-2. **Enter the Imgur URL**:
-    - Copy and paste the desired Imgur URL into the text input field labeled **"Imgur URL"**.
-3. **Select File Extensions**:
-    - Choose the file types you want the application to retrieve (e.g., `.jpg`, `.png`).
-4. **Submit and Save**:
-    - Click **"Submit New"** to start the process.
-    - Select a folder where you want the downloaded images to be saved.
-5. **View Downloaded Image**:
-    - Use the **"Open Most Recent Download"** button to preview the most recently downloaded file in the app.
-6. **Handle Existing Folders**:
-    - If a folder with the same name already exists, the application appends a suffix (`_2`) to avoid overwriting and warns you that a folder for the image already exists in the directory.
 
----
+2.  **Configure Settings**:
+    - **Save Location**: Browse to the folder where you want files to be saved.
+    - **Search Quality**: Check the box for "Best Quality" mode (slower but recommended) or uncheck it for a faster scan.
+    - **Timeout**: Adjust the network timeout if you are on a slow connection.
 
-## Key Functionalities
+3.  **Choose an Input Mode**:
 
-### 1. **Image Retrieval**:
+    - **For a Single URL**:
+        1. Select the "Single URL" radio button.
+        2. Paste the full Imgur URL into the entry box.
+        3. Click **"Start Download"**.
 
-- The app uses the **Wayback Machine's CDX API** to locate archived versions of Imgur-hosted images.
-- Automatically tries each selected extension until a valid archived version is found.
+    - **For Batch Processing**:
+        1. Create a `.txt` file where each line is a different Imgur URL.
+        2. Select the "Batch from .txt File" radio button.
+        3. Click "Browse..." to select your `.txt` file.
+        4. Click **"Start Batch"**.
 
-### 2. **Download and Save**:
+4.  **Monitor Progress**:
+    - Watch the **Batch Process** list update with the status of each URL.
+    - Observe detailed logs in the **Log** panel.
+    - The progress bar will show the overall completion of the batch.
 
-- Downloads the located file from the archive and saves it in the specified folder.
-- Files are named using the Imgur ID, with an optional suffix to handle duplicates.
+5.  **Post-Processing**:
+    - Click **"Retry Failed"** to re-attempt downloads for any URLs that errored out.
+    - Click on a successful item in the list to see its preview.
+    - Use the **"Open Last File"** and **"Open Last Folder"** buttons for quick access to your downloads.
 
-### 3. **Image Display**:
+## Building a Windows Executable (`.exe`)
 
-- Supports displaying `.jpg`, `.jpeg`, and `.png` images within the GUI.
-- Resizes large images to fit the application window.
+You can create a standalone `.exe` file using PyInstaller.
 
----
+1.  **Install PyInstaller**:
+    ```bash
+    pip install pyinstaller
+    ```
 
-## Error Handling
+2.  **Provide an Icon (Optional)**: Place an icon file (e.g., `app_icon.ico`) in the project's root directory.
 
-- **Invalid URL**: Prompts users to enter a valid Imgur URL.
-- **Unsupported Extensions**: Alerts users if the provided URL has an unsupported extension.
-- **No Archive Found**: Notifies users if no archived versions are available for the given file types.
-- **Download Issues**: Displays an error message if downloading the file fails.
+3.  **Run the Build Command**: The `sv-ttk` library requires its data files to be bundled explicitly. Use the following command, replacing `<path_to_sv_ttk>` with the actual path on your system.
 
----
+    > **Tip**: To find the path, run `python -c "import sv_ttk, os; print(os.path.dirname(sv_ttk.__file__))"` in your activated virtual environment.
 
-## Customization
+    ```bash
+    pyinstaller --onefile --windowed --icon="app_icon.ico" --add-data="<path_to_sv_ttk>;sv_ttk" imgur_archive_viewer_v4.1.py
+    ```
+    *Example Path:* `--add-data="C:\Users\YourUser\...\.venv\Lib\site-packages\sv_ttk;sv_ttk"`
 
-You can modify the following variables in the script:
-
-- **`EXTENSIONS`**: To add or remove supported file types.
-- **GUI Dimensions**: Adjust the default window size by changing the `self.root.geometry("500x500")` line in the `__init__` method.
-
----
-
-## Troubleshooting
-
-- **Missing Dependencies**: Ensure all required Python packages are installed.
-- **Permission Errors**: Run the script as an administrator or save files in a directory where you have write permissions.
-- **Display Issues**: Ensure OpenCV (`opencv-python`) and Pillow (`pillow`) are installed to support image processing and display.
-
----
-
-## Future Enhancements
-
-- Add support for batch processing of multiple URLs.
-- Include advanced filtering options for specific date ranges in the Wayback Machine.
-- Extend support for non-image file types (e.g., `.zip`).
-- Extend support for `.gif` and `.gifv` media.
-
----
+4.  **Find your application** in the `dist` folder. It is now a portable executable.
 
 ## License
 
-This project is released under the Attribution-NonCommercial 4.0 International License (CC BY-NC-SA). You are free to use, modify, and distribute it as long as appropriate credit is given.
+This project is released under the Attribution-NonCommercial 4.0 International License (CC BY-NC-SA). You are free to use, modify, and distribute it as long as appropriate credit is given.
+## Contributing
+
+Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/your-username/Imgur_Archive_Viewer_Repo/issues) if you want to contribute.
 
 ---
-
-## Contact
-
-For questions or feedback, please create an issue or reach out to the developer via GitHub.
