@@ -613,7 +613,7 @@ class ImgurArchiveAppV4_2:
                 messagebox.showerror("Error", f"Failed to export log: {e}")
 
     def _show_about(self):
-        about_text = ("Imgur Archive Hunter v4.2\n\n"
+        about_text = ("Imgur Archive Viewer v4.2\n\n"
                       "This application searches the Wayback Machine's CDX index to find and download archived Imgur media.\n\n"
                       "Features:\n"
                       "- Single URL or Batch .txt file processing\n"
@@ -623,7 +623,7 @@ class ImgurArchiveAppV4_2:
                       "- Dark mode title bar on Windows 10/11\n"
                       "- Fixed and improved image preview system\n\n"
                       "UI theme powered by sv-ttk.")
-        messagebox.showinfo("About Imgur Archive Hunter", about_text)
+        messagebox.showinfo("About Imgur Archive Viewer", about_text)
 
 
 if __name__ == "__main__":

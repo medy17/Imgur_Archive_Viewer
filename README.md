@@ -1,4 +1,4 @@
-# Imgur Archive Hunter
+# Imgur Archive Viewer
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![License](https://img.shields.io/badge/license-CC--BY--NC%204.0-green.svg)
@@ -10,14 +10,14 @@ A modern, feature-rich desktop application for finding and downloading lost or d
 
 <p align="center">
   <!-- IMPORTANT: Replace this with a screenshot or GIF of your v4.1 application! -->
-  <img src="https://i.imgur.com/qMUujbP.png" alt="Imgur Archive Hunter Screenshot" width="700"/>
+  <img src="https://i.imgur.com/qMUujbP.png" alt="Imgur Archive Viewer Screenshot" width="700"/>
 </p>
 
 ---
 
 ## Overview
 
-**Imgur Archive Hunter** is a powerful tool built with Python and Tkinter that queries the Wayback Machine's CDX API to find and recover archived Imgur media. With a sleek, modern UI powered by `sv-ttk`, it provides a seamless user experience, including automatic dark/light mode detection and robust batch processing capabilities.
+**Imgur Archive Viewer** is a powerful tool built with Python and Tkinter that queries the Wayback Machine's CDX API to find and recover archived Imgur media. With a sleek, modern UI powered by `sv-ttk`, it provides a seamless user experience, including automatic dark/light mode detection and robust batch processing capabilities.
 
 If an Imgur link is dead but you suspect it was once archived, this is the tool to find it.
 
