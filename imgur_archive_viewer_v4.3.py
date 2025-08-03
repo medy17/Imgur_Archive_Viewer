@@ -59,13 +59,12 @@ def _enable_nc_paint():
         return
     try:
         hwnd = ctypes.windll.user32.GetParent(root.winfo_id())
-        # WM_NCPAINT message will now wait for the client area
         ctypes.windll.user32.SetWindowLongPtrW(
             hwnd, -20,  # GWL_EXSTYLE
             ctypes.windll.user32.GetWindowLongPtrW(hwnd, -20) | 0x00000200  # WS_EX_COMPOSITED
         )
     except Exception:
-        pass  # silently ignore on older Windows or Wine
+        pass
 
 # --- Small utilities (inlined) ---
 def get_config_dir(app_name="ImgurArchiveHunter"):
@@ -1153,20 +1152,13 @@ class ImgurArchiveAppV4_3:
 
     # Replace the old _on_window_configure with this new one:
     def _on_window_configure(self, evt):
-        """
-        Called on window move or resize.
-        We only schedule a geometry save if the size has changed.
-        """
-        # Compare current size to last known size.
         if evt.width != self._last_width or evt.height != self._last_height:
-            # It's a resize event, so schedule the save.
             self._last_width = evt.width
             self._last_height = evt.height
             self._schedule_geometry_save()
-        # If only the position changed (a move event), we do nothing.
 
     def _schedule_geometry_save(self):
-        """Wait 1.5 s of silence before touching disk, then refresh UI."""
+        """Wait 3.5 s of silence before touching disk, then refresh UI."""
         if hasattr(self, "_geom_after"):
             self.root.after_cancel(self._geom_after)
         self._geom_after = self.root.after(
@@ -1179,7 +1171,6 @@ class ImgurArchiveAppV4_3:
         )
 
     def _really_save_settings(self):
-        """Actually write the settings to disk."""
         self.settings["window_geometry"] = self.root.geometry()
         try:
             self.settings["sash"] = self.paned_window.sashpos(0)
