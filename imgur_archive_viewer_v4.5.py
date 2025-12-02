@@ -836,5 +836,5 @@ class ImgurArchiveAppV4_5:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = ImgurArchiveAppV4_3(root)
+    app = ImgurArchiveAppV4_5(root)
     root.mainloop()
